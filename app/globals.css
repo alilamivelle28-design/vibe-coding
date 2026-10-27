@@ -1,26 +1,32 @@
 @import "tailwindcss";
 
+/* Couleurs relevées sur espub.org (valeurs approchées, à ajuster avec la charte officielle). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --noir: #0a0a0a;
+  --blanc: #ffffff;
+  --papier: #f6f6f4;
+  --rouge: #e3001b;
+  --ciel: #6ea6c8;
+  --gris: #efefec;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-noir: var(--noir);
+  --color-papier: var(--papier);
+  --color-rouge: var(--rouge);
+  --color-ciel: var(--ciel);
+  --color-gris: var(--gris);
+  --font-titres: var(--police-titres);
+  --font-manuscrit: var(--police-manuscrit);
+  --font-sans: var(--police-texte);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--papier);
+  color: var(--noir);
+  font-family: var(--police-texte), Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }
