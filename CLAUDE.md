@@ -1,13 +1,20 @@
 # Fiche d'identité du projet : L'entraide du campus
 
-> À relire avant chaque demande. Les lignes marquées (à compléter) sont à écrire par Lauriane.
+> À relire avant chaque demande.
 
 ## Ce que je construis
 - **Pour qui** : les étudiants du campus.
 - **Problème** : trouver quelqu'un qui sait faire quelque chose (photo, vidéo, dev, community management) ou qui propose un service (coloc, covoiturage).
 - **Un seul compte** : la même personne propose et cherche, sans changer de rôle.
 - **3 écrans** : les annonces, la demande reçue, mon profil (rempli par l'IA à partir du CV).
-- **Ce qu'on ne fait pas** : (à compléter, par exemple : pas de paiement, pas d'appli mobile native, pas de notation).
+- **Ce qu'on ne fait pas** :
+  - aucun paiement en ligne. Une annonce peut seulement être marquée « Rémunéré » pour dire que le service peut comprendre une participation financière, à régler entre les deux personnes ;
+  - pas d'appli mobile à télécharger : un site qui marche bien sur téléphone ;
+  - pas de notes ni d'avis sur les personnes ;
+  - pas de compte sans adresse `@mail-esd.com`, ni de connexion par Google ou Facebook ;
+  - pas de messagerie tant que le palier 1 ne marche pas.
+- **Palier visé** : le palier 1 en entier pour le 17 décembre. Le palier 2 (messagerie) se décide en séance 5, seulement si le palier 1 tient.
+- **Les 3 écrans de la démo** : les annonces (avec « Demander le contact »), la demande reçue (accepter, puis les coordonnées apparaissent), mon profil créé à partir du CV.
 
 ## Avec quoi
 - Next.js (App Router) + TypeScript + Tailwind CSS.
@@ -42,7 +49,10 @@ Ces règles sont protégées dans la base (RLS Supabase), pas seulement cachées
 ## Ce que l'IA ne touche jamais
 - Les fichiers `.env*` et les clés : aucune clé d'API ni clé `service_role` dans le code.
 - Les règles RLS déjà validées, sans me demander.
-- (à compléter)
+- Aucune donnée ni table supprimée sans me demander.
+- Aucun test modifié pour le faire passer.
+- Rien publié sur l'adresse en ligne (branche `main`) sans mon « publie ».
+- La charte graphique (couleurs, polices) ne change pas sans me demander.
 
 ## Comment on travaille
 - Pose-moi tes questions avant de coder, puis propose un plan court avec un moyen de vérifier chaque étape.
