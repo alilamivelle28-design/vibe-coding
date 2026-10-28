@@ -1,26 +1,35 @@
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import BoutonSupprimer from "@/app/components/BoutonSupprimer";
+import CarteAnnonce, { COLONNES_ANNONCE, type Annonce } from "@/app/components/CarteAnnonce";
+import EnTete from "@/app/components/EnTete";
+import { exigerConnexion } from "@/lib/supabase/connexion";
 
 export default function Espace() {
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-12">
-      <Suspense fallback={<p className="text-noir/60">Chargement de ton espace…</p>}>
-        <ContenuEspace />
-      </Suspense>
-    </main>
+    <>
+      <EnTete />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-5 pb-16 pt-4">
+        <Suspense fallback={<p className="text-noir/60">Chargement de ton espace…</p>}>
+          <ContenuEspace />
+        </Suspense>
+      </main>
+    </>
   );
 }
 
 async function ContenuEspace() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const id = data?.claims?.sub;
-  if (!id) redirect("/#connexion");
+  const { supabase, id } = await exigerConnexion();
 
-  const [{ data: publics }, { data: prives }] = await Promise.all([
+  const [{ data: publics }, { data: prives }, { data: mesAnnonces }] = await Promise.all([
     supabase.from("profils_publics").select("prenom").eq("id", id).single(),
     supabase.from("profils_prives").select("nom, email, telephone, adresse").eq("id", id).single(),
+    supabase
+      .from("annonces")
+      .select(COLONNES_ANNONCE)
+      .eq("auteur", id)
+      .order("cree_le", { ascending: false })
+      .overrideTypes<Annonce[], { merge: false }>(),
   ]);
 
   return (
@@ -54,7 +63,36 @@ async function ContenuEspace() {
         </dl>
       </section>
 
-      <p className="mt-8 text-noir/60">Les annonces arrivent à la prochaine étape.</p>
+      <section id="mes-annonces" className="mt-12 scroll-mt-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h2 className="font-titres text-3xl uppercase">Mes annonces</h2>
+          <Link
+            href="/annonces/nouvelle"
+            className="bg-noir px-5 py-3 font-titres text-lg uppercase tracking-wide text-white hover:bg-rouge"
+          >
+            Publier une annonce →
+          </Link>
+        </div>
+        {mesAnnonces?.length ? (
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {mesAnnonces.map((annonce) => (
+              <CarteAnnonce key={annonce.id} annonce={annonce}>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link
+                    href={`/annonces/${annonce.id}/modifier`}
+                    className="border border-noir px-4 py-2 text-sm font-bold uppercase tracking-wide hover:bg-noir hover:text-white"
+                  >
+                    Modifier
+                  </Link>
+                  <BoutonSupprimer id={annonce.id} titre={annonce.titre} />
+                </div>
+              </CarteAnnonce>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-noir/70">Tu n&apos;as pas encore publié d&apos;annonce.</p>
+        )}
+      </section>
     </>
   );
 }
