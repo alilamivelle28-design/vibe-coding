@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { isSchoolEmail, SCHOOL_EMAIL_DOMAIN } from "@/lib/email";
+import { type InfosInscription, validateInscription } from "@/lib/inscription";
 import { PASSWORD_MIN_LENGTH, validateNewPassword } from "@/lib/password";
 
 type Mode = "connexion" | "inscription" | "oubli";
@@ -22,6 +23,20 @@ const BOUTONS: Record<Mode, string> = {
 const champ =
   "mt-1 w-full border border-noir bg-white px-4 py-3 text-base outline-none focus:ring-2 focus:ring-rouge";
 const etiquette = "mt-4 block font-titres text-base uppercase tracking-wide";
+const infosVides: InfosInscription = { prenom: "", nom: "", telephone: "", adresse: "" };
+
+function Badge({ publique }: { publique: boolean }) {
+  return (
+    <span
+      className={`ml-2 rounded-full px-2 py-0.5 align-middle font-sans text-[11px] font-semibold normal-case tracking-normal ${
+        publique ? "bg-ciel/30 text-noir" : "bg-noir text-white"
+      }`}
+    >
+      {publique ? "Visible par les autres" : "🔒 Confidentiel"}
+    </span>
+  );
+}
+
 const lien =
   "text-sm font-semibold underline underline-offset-4 hover:text-rouge focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rouge";
 
@@ -30,7 +45,13 @@ export default function FormulaireConnexion() {
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmation, setConfirmation] = useState("");
+  const [infos, setInfos] = useState<InfosInscription>(infosVides);
   const [retour, setRetour] = useState<Retour>(null);
+
+  function changerInfo(cle: keyof InfosInscription, valeur: string) {
+    setInfos((avant) => ({ ...avant, [cle]: valeur }));
+    setRetour(null);
+  }
 
   function changerMode(nouveau: Mode) {
     setMode(nouveau);
@@ -56,7 +77,7 @@ export default function FormulaireConnexion() {
     }
 
     if (mode === "inscription") {
-      const erreur = validateNewPassword(motDePasse, confirmation);
+      const erreur = validateInscription(infos) ?? validateNewPassword(motDePasse, confirmation);
       if (erreur) {
         setRetour({ type: "erreur", texte: erreur });
         return;
@@ -87,8 +108,35 @@ export default function FormulaireConnexion() {
         </p>
       )}
 
+      {mode === "inscription" && (
+        <>
+          <p className="mt-2 text-sm text-noir/70">
+            Seul ton prénom est visible par les autres étudiants. Ton nom, ton téléphone, ton adresse et ton e-mail restent confidentiels.
+          </p>
+          <div className="grid gap-x-3 sm:grid-cols-2">
+            <div>
+              <label htmlFor="prenom" className={etiquette}>
+                Prénom <Badge publique />
+              </label>
+              <input id="prenom" name="prenom" autoComplete="given-name" value={infos.prenom}
+                onChange={(e) => changerInfo("prenom", e.target.value)}
+                aria-describedby="retour-formulaire" className={champ} />
+            </div>
+            <div>
+              <label htmlFor="nom" className={etiquette}>
+                Nom <Badge publique={false} />
+              </label>
+              <input id="nom" name="nom" autoComplete="family-name" value={infos.nom}
+                onChange={(e) => changerInfo("nom", e.target.value)}
+                aria-describedby="retour-formulaire" className={champ} />
+            </div>
+          </div>
+        </>
+      )}
+
       <label htmlFor="email" className={etiquette}>
         Adresse e-mail de l&apos;école
+        {mode === "inscription" && <Badge publique={false} />}
       </label>
       <input
         id="email"
@@ -105,6 +153,25 @@ export default function FormulaireConnexion() {
         aria-describedby="retour-formulaire"
         className={champ}
       />
+
+      {mode === "inscription" && (
+        <>
+          <label htmlFor="telephone" className={etiquette}>
+            Téléphone <Badge publique={false} />
+          </label>
+          <input id="telephone" name="telephone" type="tel" inputMode="tel" autoComplete="tel"
+            placeholder="06 12 34 56 78" value={infos.telephone}
+            onChange={(e) => changerInfo("telephone", e.target.value)}
+            aria-describedby="retour-formulaire" className={champ} />
+          <label htmlFor="adresse" className={etiquette}>
+            Adresse <Badge publique={false} />
+          </label>
+          <input id="adresse" name="adresse" autoComplete="street-address"
+            placeholder="Numéro, rue, code postal, ville" value={infos.adresse}
+            onChange={(e) => changerInfo("adresse", e.target.value)}
+            aria-describedby="retour-formulaire" className={champ} />
+        </>
+      )}
 
       {mode !== "oubli" && (
         <>

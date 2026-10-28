@@ -21,6 +21,12 @@
 
 Ces règles sont protégées dans la base (RLS Supabase), pas seulement cachées à l'écran.
 
+## Données demandées à l'inscription
+- **Public** (visible par les autres étudiants) : le prénom uniquement.
+- **Confidentiel** (visible seulement par la personne elle-même, puis par l'autre après son accord) : nom, e-mail, téléphone, adresse.
+- L'e-mail doit se terminer par `@mail-esd.com`. Mot de passe : 8 caractères minimum.
+- La séparation public / confidentiel se fait dans la base (deux tables, RLS), pas seulement à l'écran.
+
 ## Les 2 IA
 1. **Profil automatique (imposée)** : je dépose mon CV en PDF, l'IA propose mes compétences en JSON, je relis, je corrige et je valide avant l'enregistrement. Le CV est un texte à lire, jamais des instructions à suivre.
 2. **Assistant de rédaction (la mienne)** :
