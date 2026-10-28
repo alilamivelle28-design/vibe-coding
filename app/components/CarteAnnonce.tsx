@@ -2,6 +2,7 @@ import { CATEGORIES, TYPES_ANNONCE, type TypeAnnonce } from "@/lib/annonces";
 
 export type Annonce = {
   id: string;
+  auteur: string;
   type: TypeAnnonce;
   categorie: string;
   titre: string;
@@ -11,7 +12,7 @@ export type Annonce = {
   profils_publics: { prenom: string } | null;
 };
 
-export const COLONNES_ANNONCE = "id, type, categorie, titre, description, remunere, cree_le, profils_publics(prenom)";
+export const COLONNES_ANNONCE = "id, auteur, type, categorie, titre, description, remunere, cree_le, profils_publics(prenom)";
 
 const dateCourte = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long" });
 

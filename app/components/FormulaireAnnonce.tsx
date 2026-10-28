@@ -18,7 +18,16 @@ const etiquette = "mt-5 block font-titres text-base uppercase tracking-wide";
 const vide: BrouillonAnnonce = { type: "propose", categorie: "", titre: "", description: "", remunere: false };
 
 // Sert à publier (sans id) et à modifier (avec l'id de l'annonce).
-export default function FormulaireAnnonce({ id, initiale = vide }: { id?: string; initiale?: BrouillonAnnonce }) {
+// Sans `apresEnvoi`, on part sur « Mes annonces » une fois l'annonce enregistrée.
+export default function FormulaireAnnonce({
+  id,
+  initiale = vide,
+  apresEnvoi,
+}: {
+  id?: string;
+  initiale?: BrouillonAnnonce;
+  apresEnvoi?: () => void;
+}) {
   const [annonce, setAnnonce] = useState<BrouillonAnnonce>(initiale);
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
@@ -53,6 +62,10 @@ export default function FormulaireAnnonce({ id, initiale = vide }: { id?: string
 
     if (error) {
       setErreur("L'enregistrement n'a pas marché. Vérifie ta connexion, puis réessaie.");
+      return;
+    }
+    if (apresEnvoi) {
+      apresEnvoi();
       return;
     }
     router.push("/espace#mes-annonces");

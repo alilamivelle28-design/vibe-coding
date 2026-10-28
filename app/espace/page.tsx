@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import BoutonPublier from "@/app/components/BoutonPublier";
 import BoutonSupprimer from "@/app/components/BoutonSupprimer";
 import CarteAnnonce, { COLONNES_ANNONCE, type Annonce } from "@/app/components/CarteAnnonce";
 import EnTete from "@/app/components/EnTete";
@@ -66,12 +67,7 @@ async function ContenuEspace() {
       <section id="mes-annonces" className="mt-12 scroll-mt-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="font-titres text-3xl uppercase">Mes annonces</h2>
-          <Link
-            href="/annonces/nouvelle"
-            className="bg-noir px-5 py-3 font-titres text-lg uppercase tracking-wide text-white hover:bg-rouge"
-          >
-            Publier une annonce →
-          </Link>
+          <BoutonPublier />
         </div>
         {mesAnnonces?.length ? (
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import CarteAnnonce, { COLONNES_ANNONCE, type Annonce } from "@/app/components/CarteAnnonce";
+import BoutonPublier from "@/app/components/BoutonPublier";
+import { COLONNES_ANNONCE, type Annonce } from "@/app/components/CarteAnnonce";
 import EnTete from "@/app/components/EnTete";
+import VueAnnonces from "@/app/components/VueAnnonces";
 import { estCategorie, estTypeAnnonce, FAMILLES_CATEGORIES, TYPES_ANNONCE } from "@/lib/annonces";
 import { exigerConnexion } from "@/lib/supabase/connexion";
 
@@ -14,14 +16,9 @@ export default function Annonces({ searchParams }: { searchParams: Filtres }) {
     <>
       <EnTete />
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 pb-16">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="font-titres text-5xl uppercase">Les annonces</h1>
-          <Link
-            href="/annonces/nouvelle"
-            className="bg-noir px-5 py-3 font-titres text-lg uppercase tracking-wide text-white hover:bg-rouge"
-          >
-            Publier une annonce →
-          </Link>
+        <h1 className="font-titres text-5xl uppercase">Les annonces</h1>
+        <div className="mt-5">
+          <BoutonPublier />
         </div>
         <Suspense fallback={<p className="mt-8 text-noir/60">Chargement des annonces…</p>}>
           <ListeAnnonces searchParams={searchParams} />
@@ -32,7 +29,7 @@ export default function Annonces({ searchParams }: { searchParams: Filtres }) {
 }
 
 async function ListeAnnonces({ searchParams }: { searchParams: Filtres }) {
-  const { supabase } = await exigerConnexion();
+  const { supabase, id: moi } = await exigerConnexion();
   const parametres = await searchParams;
   const type = estTypeAnnonce(parametres.type) ? parametres.type : "";
   const categorie = estCategorie(parametres.categorie) ? parametres.categorie : "";
@@ -95,11 +92,7 @@ async function ListeAnnonces({ searchParams }: { searchParams: Filtres }) {
           <p className="mt-2 text-noir/70">Lance-toi : la première annonce, c&apos;est peut-être la tienne.</p>
         </div>
       ) : (
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {data.map((annonce) => (
-            <CarteAnnonce key={annonce.id} annonce={annonce} />
-          ))}
-        </div>
+        <VueAnnonces annonces={data} moi={moi} />
       )}
     </>
   );
