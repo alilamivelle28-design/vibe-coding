@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { isSchoolEmail, SCHOOL_EMAIL_DOMAIN } from "@/lib/email";
 import { type InfosInscription, validateInscription } from "@/lib/inscription";
+import { messageErreurAuth } from "@/lib/messages-auth";
 import { PASSWORD_MIN_LENGTH, validateNewPassword } from "@/lib/password";
+import { createClient } from "@/lib/supabase/client";
 
 type Mode = "connexion" | "inscription" | "oubli";
 type Retour = { type: "erreur" | "ok"; texte: string } | null;
@@ -47,6 +50,8 @@ export default function FormulaireConnexion() {
   const [confirmation, setConfirmation] = useState("");
   const [infos, setInfos] = useState<InfosInscription>(infosVides);
   const [retour, setRetour] = useState<Retour>(null);
+  const [envoi, setEnvoi] = useState(false);
+  const router = useRouter();
 
   function changerInfo(cle: keyof InfosInscription, valeur: string) {
     setInfos((avant) => ({ ...avant, [cle]: valeur }));
@@ -60,7 +65,7 @@ export default function FormulaireConnexion() {
     setConfirmation("");
   }
 
-  function envoyer(evenement: React.FormEvent<HTMLFormElement>) {
+  async function envoyer(evenement: React.FormEvent<HTMLFormElement>) {
     evenement.preventDefault();
 
     if (!isSchoolEmail(email)) {
@@ -84,13 +89,60 @@ export default function FormulaireConnexion() {
       }
     }
 
-    // Les comptes ne sont pas encore branchés : on confirme seulement que le formulaire est valide.
+    const supabase = createClient();
+    const adresse = email.trim().toLowerCase();
+    const origine = window.location.origin;
+    setEnvoi(true);
+
+    if (mode === "connexion") {
+      const { error } = await supabase.auth.signInWithPassword({ email: adresse, password: motDePasse });
+      setEnvoi(false);
+      if (error) {
+        setRetour({ type: "erreur", texte: messageErreurAuth(error) });
+        return;
+      }
+      router.push("/espace");
+      return;
+    }
+
+    if (mode === "inscription") {
+      const { error } = await supabase.auth.signUp({
+        email: adresse,
+        password: motDePasse,
+        options: {
+          emailRedirectTo: `${origine}/auth/confirm`,
+          data: {
+            prenom: infos.prenom.trim(),
+            nom: infos.nom.trim(),
+            telephone: infos.telephone.trim(),
+            adresse: infos.adresse.trim(),
+          },
+        },
+      });
+      setEnvoi(false);
+      if (error) {
+        setRetour({ type: "erreur", texte: messageErreurAuth(error) });
+        return;
+      }
+      setRetour({
+        type: "ok",
+        texte: `Presque fini : clique sur le lien envoyé à ${adresse} pour confirmer ton compte. Pense à regarder dans les spams.`,
+      });
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(adresse, {
+      redirectTo: `${origine}/auth/recuperation`,
+    });
+    setEnvoi(false);
+    if (error) {
+      setRetour({ type: "erreur", texte: messageErreurAuth(error) });
+      return;
+    }
+    // Même message qu'il existe un compte ou non, pour ne pas révéler qui est inscrit.
     setRetour({
       type: "ok",
-      texte:
-        mode === "oubli"
-          ? "Si un compte existe pour cette adresse, un lien de réinitialisation sera envoyé. L'envoi sera activé à la prochaine étape du projet."
-          : "Formulaire valide. La connexion et l'inscription seront activées à la prochaine étape du projet.",
+      texte: "Si un compte existe pour cette adresse, un lien pour choisir un nouveau mot de passe vient d'être envoyé.",
     });
   }
 
@@ -229,9 +281,10 @@ export default function FormulaireConnexion() {
 
       <button
         type="submit"
-        className="mt-4 flex w-full items-center justify-center gap-2 bg-noir px-5 py-3 font-titres text-lg uppercase tracking-wide text-white transition hover:bg-rouge focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rouge"
+        disabled={envoi}
+        className="mt-4 flex w-full items-center justify-center gap-2 bg-noir px-5 py-3 font-titres text-lg uppercase tracking-wide text-white transition hover:bg-rouge disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rouge"
       >
-        {BOUTONS[mode]} <span aria-hidden>→</span>
+        {envoi ? "Envoi…" : BOUTONS[mode]} {!envoi && <span aria-hidden>→</span>}
       </button>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
