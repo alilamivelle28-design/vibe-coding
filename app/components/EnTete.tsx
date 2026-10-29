@@ -1,9 +1,10 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
 const liens = [
   { href: "/annonces", texte: "Annonces" },
   { href: "/annonces/nouvelle", texte: "Publier" },
-  { href: "/espace", texte: "Mon espace" },
 ] as const;
 
 // En-tête des pages réservées aux étudiants connectés.
@@ -19,7 +20,32 @@ export default function EnTete() {
             {lien.texte}
           </Link>
         ))}
+        <Link href="/profil" className="flex items-center gap-1.5 hover:text-rouge">
+          Mon profil
+          <Suspense fallback={null}>
+            <PastilleDemandes />
+          </Suspense>
+        </Link>
       </nav>
     </header>
+  );
+}
+
+// Nombre de demandes reçues en attente de réponse (la base ne compte que les miennes).
+async function PastilleDemandes() {
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("demandes")
+    .select("id", { count: "exact", head: true })
+    .eq("statut", "en_attente");
+  if (!count) return null;
+
+  return (
+    <span
+      aria-label={`${count} demande${count > 1 ? "s" : ""} en attente`}
+      className="grid min-w-5 place-items-center rounded-full bg-rouge px-1.5 text-xs leading-5 text-white"
+    >
+      {count}
+    </span>
   );
 }

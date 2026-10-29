@@ -68,7 +68,7 @@ export default function FormulaireAnnonce({
       apresEnvoi();
       return;
     }
-    router.push("/espace#mes-annonces");
+    router.push("/profil#mes-annonces");
     router.refresh();
   }
 
