@@ -30,7 +30,7 @@ export default function NouveauMotDePasse() {
       setErreur(messageErreurAuth(error));
       return;
     }
-    router.push("/espace");
+    router.push("/profil");
   }
 
   return (
