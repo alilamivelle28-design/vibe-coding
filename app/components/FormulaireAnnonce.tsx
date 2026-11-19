@@ -61,7 +61,10 @@ export default function FormulaireAnnonce({
     setEnvoi(false);
 
     if (error) {
-      setErreur("L'enregistrement n'a pas marché. Vérifie ta connexion, puis réessaie.");
+      // Le détail technique aide à comprendre un refus de la base (règle, table absente…).
+      setErreur(
+        `L'enregistrement n'a pas marché. Vérifie ta connexion, puis réessaie. (Détail : ${error.code ?? "?"} · ${error.message})`,
+      );
       return;
     }
     if (apresEnvoi) {
