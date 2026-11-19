@@ -101,7 +101,7 @@ export default function FormulaireConnexion() {
         setRetour({ type: "erreur", texte: messageErreurAuth(error) });
         return;
       }
-      router.push("/espace");
+      router.push("/profil");
       return;
     }
 

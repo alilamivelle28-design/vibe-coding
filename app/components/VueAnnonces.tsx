@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CLE_ECARTEES, decisionSwipe, lireEcartees, type Decision } from "@/lib/swipe";
 import CarteAnnonce, { type Annonce } from "./CarteAnnonce";
+import FenetreDemande from "./FenetreDemande";
 
 type Mode = "liste" | "swipe";
 
@@ -22,13 +23,26 @@ function ecrireMemoire(ids: string[]) {
   }
 }
 
-// Liste des annonces, et sur téléphone un mode « Swipe » : à droite je réponds, à gauche pas intéressée.
-export default function VueAnnonces({ annonces, moi }: { annonces: Annonce[]; moi: string }) {
+// Liste des annonces, et sur téléphone un mode « Swipe » : à droite je demande le contact, à gauche pas intéressée.
+// `demandees` : les annonces pour lesquelles j'ai déjà envoyé une demande.
+export default function VueAnnonces({
+  annonces,
+  moi,
+  demandees,
+}: {
+  annonces: Annonce[];
+  moi: string;
+  demandees: string[];
+}) {
   const [mode, setMode] = useState<Mode>("liste");
   // Écartées : mémorisées sur ce téléphone. Vues : passées à droite pendant cette visite.
   const [ecartees, setEcartees] = useState<string[]>([]);
   const [vues, setVues] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  // Demandes envoyées pendant cette visite, et l'annonce dont la pop-in de demande est ouverte.
+  const [envoyees, setEnvoyees] = useState<string[]>([]);
+  const [enDemande, setEnDemande] = useState<{ annonce: Annonce; depuisSwipe: boolean } | null>(null);
+  const dejaDemandee = (id: string) => demandees.includes(id) || envoyees.includes(id);
 
   useEffect(() => {
     // La mémoire du téléphone n'existe pas côté serveur : on la lit une fois la page affichée.
@@ -36,7 +50,9 @@ export default function VueAnnonces({ annonces, moi }: { annonces: Annonce[]; mo
     setEcartees(lireMemoire());
   }, []);
 
-  const pile = annonces.filter((a) => a.auteur !== moi && !ecartees.includes(a.id) && !vues.includes(a.id));
+  const pile = annonces.filter(
+    (a) => a.auteur !== moi && !dejaDemandee(a.id) && !ecartees.includes(a.id) && !vues.includes(a.id),
+  );
 
   function decider(annonce: Annonce, decision: Decision) {
     if (decision === "pas-interessee") {
@@ -46,9 +62,22 @@ export default function VueAnnonces({ annonces, moi }: { annonces: Annonce[]; mo
       setMessage(null);
     } else {
       setVues((actuelles) => [...actuelles, annonce.id]);
-      const prenom = annonce.profils_publics?.prenom ?? "l'auteur";
-      setMessage(`Noté ! Demander le contact à ${prenom} sera possible ici très bientôt.`);
+      setMessage(null);
+      setEnDemande({ annonce, depuisSwipe: true });
     }
+  }
+
+  function fermerDemande(envoyee: boolean) {
+    if (!enDemande) return;
+    const { annonce, depuisSwipe } = enDemande;
+    if (envoyee) {
+      setEnvoyees((actuelles) => [...actuelles, annonce.id]);
+      setMessage(`Demande envoyée à ${annonce.profils_publics?.prenom ?? "l'auteur"} ✓ Tu la suis dans « Mon profil ».`);
+    } else if (depuisSwipe) {
+      // Demande annulée : la carte revient en haut de la pile.
+      setVues((actuelles) => actuelles.filter((id) => id !== annonce.id));
+    }
+    setEnDemande(null);
   }
 
   function toutRevoir() {
@@ -76,6 +105,11 @@ export default function VueAnnonces({ annonces, moi }: { annonces: Annonce[]; mo
         ))}
       </div>
 
+      {mode === "liste" && message && (
+        <p role="status" className="mt-6 border border-noir bg-white px-4 py-3 text-center text-sm font-semibold">
+          {message}
+        </p>
+      )}
       {mode === "swipe" && (
         <div className="-mx-5 mt-6 overflow-x-hidden px-5 pb-2 md:hidden">
           {pile.length > 0 ? (
@@ -103,9 +137,27 @@ export default function VueAnnonces({ annonces, moi }: { annonces: Annonce[]; mo
 
       <div className={`mt-8 gap-5 sm:grid-cols-2 lg:grid-cols-3 ${mode === "swipe" ? "hidden md:grid" : "grid"}`}>
         {annonces.map((annonce) => (
-          <CarteAnnonce key={annonce.id} annonce={annonce} />
+          <CarteAnnonce key={annonce.id} annonce={annonce}>
+            <div className="mt-5">
+              {annonce.auteur === moi ? (
+                <p className="text-sm font-semibold text-noir/60">C&apos;est ton annonce</p>
+              ) : dejaDemandee(annonce.id) ? (
+                <p className="text-sm font-semibold">Demande envoyée ✓</p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEnDemande({ annonce, depuisSwipe: false })}
+                  className="w-full bg-noir px-4 py-2.5 font-titres text-lg uppercase tracking-wide text-white hover:bg-rouge"
+                >
+                  Demander le contact
+                </button>
+              )}
+            </div>
+          </CarteAnnonce>
         ))}
       </div>
+
+      <FenetreDemande annonce={enDemande?.annonce ?? null} fermer={fermerDemande} />
     </>
   );
 }
@@ -163,7 +215,7 @@ function PileSwipe({
   return (
     <>
       <p className="mb-3 text-center text-sm text-noir/60">
-        {reste} annonce{reste > 1 ? "s" : ""} à découvrir · glisse à droite pour répondre, à gauche pour passer
+        {reste} annonce{reste > 1 ? "s" : ""} à découvrir · glisse à droite pour demander le contact, à gauche pour passer
       </p>
       <div className="relative">
         {suivante && (
@@ -213,7 +265,7 @@ function PileSwipe({
         <button
           type="button"
           onClick={() => lancer("interessee")}
-          aria-label="Je réponds à l'annonce"
+          aria-label="Demander le contact"
           className="size-16 rounded-full border-2 border-noir bg-noir text-2xl text-white hover:bg-rouge hover:border-rouge"
         >
           ✓

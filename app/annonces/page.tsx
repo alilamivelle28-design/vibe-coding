@@ -37,7 +37,10 @@ async function ListeAnnonces({ searchParams }: { searchParams: Filtres }) {
   let requete = supabase.from("annonces").select(COLONNES_ANNONCE).order("cree_le", { ascending: false }).limit(100);
   if (type) requete = requete.eq("type", type);
   if (categorie) requete = requete.eq("categorie", categorie);
-  const { data, error } = await requete.overrideTypes<Annonce[], { merge: false }>();
+  const [{ data, error }, { data: envoyees }] = await Promise.all([
+    requete.overrideTypes<Annonce[], { merge: false }>(),
+    supabase.rpc("mes_demandes_envoyees").select("annonce"),
+  ]);
 
   return (
     <>
@@ -92,7 +95,7 @@ async function ListeAnnonces({ searchParams }: { searchParams: Filtres }) {
           <p className="mt-2 text-noir/70">Lance-toi : la première annonce, c&apos;est peut-être la tienne.</p>
         </div>
       ) : (
-        <VueAnnonces annonces={data} moi={moi} />
+        <VueAnnonces annonces={data} moi={moi} demandees={((envoyees ?? []) as { annonce: string }[]).map((d) => d.annonce)} />
       )}
     </>
   );
