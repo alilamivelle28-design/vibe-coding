@@ -39,11 +39,16 @@ export default function CarteAnnonce({ annonce, children }: { annonce: Annonce; 
         {dateCourte.format(new Date(annonce.cree_le))}
       </p>
       {competences.length > 0 && (
-        <p className="mt-1 text-xs text-noir/70">
-          <span className="font-semibold">Ses compétences :</span>{" "}
-          {competences.slice(0, COMPETENCES_SUR_CARTE).join(" · ")}
-          {competences.length > COMPETENCES_SUR_CARTE && ` · +${competences.length - COMPETENCES_SUR_CARTE}`}
-        </p>
+        <ul className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold" aria-label="Ses compétences">
+          {competences.slice(0, COMPETENCES_SUR_CARTE).map((c) => (
+            <li key={c} className="rounded-full bg-ciel px-2.5 py-1">
+              {c}
+            </li>
+          ))}
+          {competences.length > COMPETENCES_SUR_CARTE && (
+            <li className="rounded-full bg-white px-2.5 py-1">+{competences.length - COMPETENCES_SUR_CARTE}</li>
+          )}
+        </ul>
       )}
       {children}
     </article>

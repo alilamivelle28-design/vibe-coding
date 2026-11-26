@@ -81,9 +81,9 @@ async function ContenuProfil() {
         </dl>
       </section>
 
-      <section id="mes-competences" className="mt-12 scroll-mt-6">
+      <section id="mes-competences" className="mt-12 scroll-mt-6 rounded-[28px] bg-ciel p-7">
         <h2 className="font-titres text-3xl uppercase">Mes compétences</h2>
-        <p className="mt-1 text-sm text-noir/70">
+        <p className="mt-1 text-sm text-noir/80">
           Visibles par les étudiants connectés, avec ton prénom. Jamais tes coordonnées.
         </p>
         <EditeurCompetences actuelles={(mesCompetences ?? []).map((c) => c.libelle)} />

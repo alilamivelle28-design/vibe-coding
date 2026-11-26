@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 const bouton =
   "bg-noir px-5 py-2.5 font-titres text-lg uppercase tracking-wide text-white hover:bg-rouge disabled:opacity-60";
 const boutonSecondaire =
-  "border border-noir px-4 py-2 text-sm font-bold uppercase tracking-wide hover:bg-noir hover:text-white disabled:opacity-60";
+  "border border-noir bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide hover:bg-noir hover:text-white disabled:opacity-60";
 
 type Etape = "repos" | "analyse" | "relecture";
 
@@ -103,13 +103,13 @@ export default function EditeurCompetences({ actuelles }: { actuelles: string[] 
         {actuelles.length ? (
           <ul className="mt-4 flex flex-wrap gap-2">
             {actuelles.map((c) => (
-              <li key={c} className="rounded-full border border-noir bg-white px-3 py-1 text-sm font-semibold">
+              <li key={c} className="rounded-full bg-noir px-3 py-1 text-sm font-semibold text-white">
                 {c}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-4 text-noir/70">
+          <p className="mt-4 text-noir/80">
             Pas encore de compétences. Dépose ton CV en PDF : l&apos;IA te propose une liste, tu la relis avant
             qu&apos;elle soit enregistrée.
           </p>
@@ -131,7 +131,7 @@ export default function EditeurCompetences({ actuelles }: { actuelles: string[] 
             {actuelles.length ? "Modifier à la main" : "Écrire à la main"}
           </button>
         </div>
-        <p className="mt-3 text-xs text-noir/60">
+        <p className="mt-3 text-xs text-noir/80">
           PDF de 5 Mo au plus. Ton CV n&apos;est pas conservé : seule la liste que tu valides est enregistrée.
         </p>
       </div>
@@ -140,14 +140,14 @@ export default function EditeurCompetences({ actuelles }: { actuelles: string[] 
 
   if (etape === "analyse") {
     return (
-      <p role="status" className="mt-4 animate-pulse font-semibold">
+      <p role="status" className="mt-4 animate-pulse rounded-full bg-white px-4 py-2 font-semibold">
         L&apos;IA lit ton CV… (jusqu&apos;à 20 secondes)
       </p>
     );
   }
 
   return (
-    <div className="mt-4 border border-noir bg-white p-5">
+    <div className="mt-4 border-t-8 border-rouge bg-white p-5">
       <p className="font-titres text-lg uppercase">Relis avant d&apos;enregistrer</p>
       {info && <p className="mt-1 text-sm text-noir/80">{info}</p>}
       {erreur && (
