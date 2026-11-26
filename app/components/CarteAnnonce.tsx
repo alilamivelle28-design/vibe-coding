@@ -9,15 +9,19 @@ export type Annonce = {
   description: string;
   remunere: boolean;
   cree_le: string;
-  profils_publics: { prenom: string } | null;
+  profils_publics: { prenom: string; competences?: { libelle: string }[] } | null;
 };
 
-export const COLONNES_ANNONCE = "id, auteur, type, categorie, titre, description, remunere, cree_le, profils_publics(prenom)";
+export const COLONNES_ANNONCE = "id, auteur, type, categorie, titre, description, remunere, cree_le, profils_publics(prenom, competences(libelle))";
+
+// Sur la carte, on montre quelques compétences de l'auteur (publiques, comme le prénom).
+const COMPETENCES_SUR_CARTE = 4;
 
 const dateCourte = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long" });
 
 export default function CarteAnnonce({ annonce, children }: { annonce: Annonce; children?: React.ReactNode }) {
   const propose = annonce.type === "propose";
+  const competences = (annonce.profils_publics?.competences ?? []).map((c) => c.libelle);
 
   return (
     <article className="flex flex-col rounded-[28px] bg-gris p-6">
@@ -34,6 +38,13 @@ export default function CarteAnnonce({ annonce, children }: { annonce: Annonce; 
         Par <span className="font-semibold text-noir">{annonce.profils_publics?.prenom ?? "un étudiant"}</span>, le{" "}
         {dateCourte.format(new Date(annonce.cree_le))}
       </p>
+      {competences.length > 0 && (
+        <p className="mt-1 text-xs text-noir/70">
+          <span className="font-semibold">Ses compétences :</span>{" "}
+          {competences.slice(0, COMPETENCES_SUR_CARTE).join(" · ")}
+          {competences.length > COMPETENCES_SUR_CARTE && ` · +${competences.length - COMPETENCES_SUR_CARTE}`}
+        </p>
+      )}
       {children}
     </article>
   );

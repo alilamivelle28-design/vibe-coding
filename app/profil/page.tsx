@@ -4,6 +4,7 @@ import BoutonPublier from "@/app/components/BoutonPublier";
 import BoutonSupprimer from "@/app/components/BoutonSupprimer";
 import CarteAnnonce, { COLONNES_ANNONCE, type Annonce } from "@/app/components/CarteAnnonce";
 import CarteDemande from "@/app/components/CarteDemande";
+import EditeurCompetences from "@/app/components/EditeurCompetences";
 import EnTete from "@/app/components/EnTete";
 import type { Demande } from "@/lib/demandes";
 import { exigerConnexion } from "@/lib/supabase/connexion";
@@ -24,7 +25,14 @@ export default function Profil() {
 async function ContenuProfil() {
   const { supabase, id } = await exigerConnexion();
 
-  const [{ data: publics }, { data: prives }, { data: mesAnnonces }, { data: recues }, { data: envoyees }] = await Promise.all([
+  const [
+    { data: publics },
+    { data: prives },
+    { data: mesAnnonces },
+    { data: recues },
+    { data: envoyees },
+    { data: mesCompetences },
+  ] = await Promise.all([
     supabase.from("profils_publics").select("prenom").eq("id", id).single(),
     supabase.from("profils_prives").select("nom, email, telephone, adresse").eq("id", id).single(),
     supabase
@@ -35,6 +43,7 @@ async function ContenuProfil() {
       .overrideTypes<Annonce[], { merge: false }>(),
     supabase.rpc("mes_demandes_recues"),
     supabase.rpc("mes_demandes_envoyees"),
+    supabase.from("competences").select("libelle").eq("utilisateur", id).order("cree_le").order("libelle"),
   ]);
 
   // Les deux fonctions de la base renvoient des lignes au format Demande (voir 003_demandes.sql).
@@ -70,6 +79,14 @@ async function ContenuProfil() {
           <Info nom="Téléphone · partagé si tu acceptes une demande" valeur={prives?.telephone} />
           <Info nom="Adresse · jamais partagée" valeur={prives?.adresse} />
         </dl>
+      </section>
+
+      <section id="mes-competences" className="mt-12 scroll-mt-6">
+        <h2 className="font-titres text-3xl uppercase">Mes compétences</h2>
+        <p className="mt-1 text-sm text-noir/70">
+          Visibles par les étudiants connectés, avec ton prénom. Jamais tes coordonnées.
+        </p>
+        <EditeurCompetences actuelles={(mesCompetences ?? []).map((c) => c.libelle)} />
       </section>
 
       <section id="demandes-recues" className="mt-12 scroll-mt-6">
